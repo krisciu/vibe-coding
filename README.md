@@ -73,6 +73,11 @@ In future iterations, we plan to:
 
 This project was created as a "vibe coding" experiment - focusing on creating something fun, chaotic, and shareable in a short amount of time. It's meant to be lighthearted and entertaining rather than solving a serious problem.
 
+
+## Note:
+
+I know you can do weird stuff with the handle(iykyk), I'm leaving it in because it's funny rather than fixing it.
+
 ## 📄 License
 
 MIT

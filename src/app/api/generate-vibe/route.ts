@@ -151,9 +151,10 @@ function getMockVibeData(twitterHandle: string): MoodMashData {
     "The pattern of light reflections at the bottom of a swimming pool but in slow motion",
   ];
   
-  // Generate random indices based on handle to create semi-deterministic results
+  // Generate random indices - making the vibeIndex truly random instead of deterministic
   const handleSum = twitterHandle.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const vibeIndex = handleSum % vibeTypes.length;
+  // Use Math.random() for vibeIndex to get a truly random vibe type
+  const vibeIndex = Math.floor(Math.random() * vibeTypes.length);
   const quoteIndex = (handleSum * 2) % quotes.length;
   const musicIndex = (handleSum * 3) % musicRecommendations.length;
   const emojiIndex = (handleSum * 4) % emojiSets.length;
