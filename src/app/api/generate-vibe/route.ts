@@ -8,17 +8,32 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Twitter handle validation regex
+const TWITTER_HANDLE_REGEX = /^[A-Za-z0-9_]{1,15}$/;
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { twitterHandle } = body;
+    let { twitterHandle } = body;
     
-    if (!twitterHandle) {
-      return NextResponse.json({ error: 'Twitter handle is required' }, { status: 400 });
+    // Remove @ if present
+    if (twitterHandle && twitterHandle.startsWith('@')) {
+      twitterHandle = twitterHandle.substring(1);
+    }
+    
+    // Validate Twitter handle format
+    if (!twitterHandle || !TWITTER_HANDLE_REGEX.test(twitterHandle)) {
+      return NextResponse.json(
+        { error: 'Invalid Twitter handle. Handles must be 1-15 characters and can only contain letters, numbers, and underscores.' }, 
+        { status: 400 }
+      );
     }
 
     // Generate advanced vibe using OpenAI
     const vibeResponse = await generateAdvancedVibe(twitterHandle);
+    
+    // Log the vibe type to help debug
+    console.log(`Final vibe type: ${vibeResponse.vibeType} for handle: ${twitterHandle}`);
     
     // Store the vibe data in database
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -32,16 +47,103 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Get vibe type based on Twitter handle characteristics
+function getVibeTypeFromHandle(handle: string): string {
+  const vibeTypes = [
+    "chaotic", "chill", "retro", "cyberpunk", 
+    "vaporwave", "cottagecore", "hyper-digital", 
+    "cosmic", "goth", "dreamcore", "ethereal"
+  ];
+  
+  // Create a score for each vibe type based on handle characteristics
+  const scores = new Map<string, number>();
+  
+  // Initialize all scores to 1
+  vibeTypes.forEach(type => scores.set(type, 1));
+  
+  // Length-based scoring
+  if (handle.length <= 5) {
+    scores.set("chill", scores.get("chill")! + 3);
+    scores.set("retro", scores.get("retro")! + 2);
+  } else if (handle.length > 10) {
+    scores.set("chaotic", scores.get("chaotic")! + 3);
+    scores.set("hyper-digital", scores.get("hyper-digital")! + 2);
+  }
+  
+  // Character-based scoring
+  const hasUppercase = /[A-Z]/.test(handle);
+  const hasNumbers = /[0-9]/.test(handle);
+  const hasUnderscores = handle.includes('_');
+  
+  if (hasUppercase) {
+    scores.set("vaporwave", scores.get("vaporwave")! + 2);
+    scores.set("cyberpunk", scores.get("cyberpunk")! + 2);
+  }
+  
+  if (hasNumbers) {
+    scores.set("cyberpunk", scores.get("cyberpunk")! + 3);
+    scores.set("hyper-digital", scores.get("hyper-digital")! + 2);
+  }
+  
+  if (hasUnderscores) {
+    scores.set("goth", scores.get("goth")! + 2);
+    scores.set("dreamcore", scores.get("dreamcore")! + 3);
+  }
+  
+  // First letter-based scoring
+  const firstChar = handle.charAt(0).toLowerCase();
+  if ('abcde'.includes(firstChar)) {
+    scores.set("ethereal", scores.get("ethereal")! + 3);
+  } else if ('fghij'.includes(firstChar)) {
+    scores.set("cottagecore", scores.get("cottagecore")! + 3);
+  } else if ('klmno'.includes(firstChar)) {
+    scores.set("cosmic", scores.get("cosmic")! + 3);
+  } else if ('pqrst'.includes(firstChar)) {
+    scores.set("retro", scores.get("retro")! + 3);
+  } else {
+    scores.set("vaporwave", scores.get("vaporwave")! + 3);
+  }
+  
+  // Add some randomness - 1 to 5 additional points
+  vibeTypes.forEach(type => {
+    const randomBoost = Math.floor(Math.random() * 5) + 1;
+    scores.set(type, scores.get(type)! + randomBoost);
+  });
+  
+  // Convert scores to probability distribution
+  const totalScore = Array.from(scores.values()).reduce((sum, score) => sum + score, 0);
+  const probabilities: [string, number][] = [];
+  
+  scores.forEach((score, type) => {
+    probabilities.push([type, score / totalScore]);
+  });
+  
+  // Weighted random selection
+  const random = Math.random();
+  let cumulativeProbability = 0;
+  
+  for (const [type, probability] of probabilities) {
+    cumulativeProbability += probability;
+    if (random <= cumulativeProbability) {
+      console.log(`Selected vibe type '${type}' based on handle characteristics with probability ${probability.toFixed(2)}`);
+      return type;
+    }
+  }
+  
+  // Fallback (should never reach here, but just in case)
+  return vibeTypes[Math.floor(Math.random() * vibeTypes.length)];
+}
+
 async function generateAdvancedVibe(twitterHandle: string): Promise<MoodMashData> {
   // Define prompt for the AI
-  const prompt = `Generate a creative, absurdist "vibe" for Twitter/X user @${twitterHandle}.
+  const prompt = `Generate a creative, unique "vibe" for Twitter/X user @${twitterHandle}.
   
-  Make the quote dry, subtly funny, and existentially absurd - think of a mix between Daria, Bojack Horseman, and Nathan Fielder.
+  Make the quote dry, subtly funny, and existentially interesting - think of a mix between Daria, Bojack Horseman, and Nathan Fielder.
   The quote should feel like an unexpected thought that's both humorous and slightly philosophical.
   
   Return a JSON object with the following properties:
-  - quote: A unique, absurdist quote that represents their vibe (dry humor, understated existentialism)
-  - vibeType: One of ["chaotic", "chill", "retro", "cyberpunk", "vaporwave", "cottagecore", "hyper-digital", "cosmic", "goth", "dreamcore", "ethereal", "absurdist"]
+  - quote: A unique, witty quote that represents their vibe (dry humor, understated existentialism)
+  - vibeType: "${getVibeTypeFromHandle(twitterHandle)}" (do not change this value)
   - colorPalette: Array of 3 hex color codes that match the vibe
   - music: A specific music recommendation that matches the vibe (can be genre, artist, or specific song)
   - emojiSet: Array of 5 emojis that represent the vibe
@@ -59,7 +161,7 @@ async function generateAdvancedVibe(twitterHandle: string): Promise<MoodMashData
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a creative vibe generator that creates dry, funny, absurdist digital aesthetics. Think of show writers for Adult Swim, but more subtle and nuanced." },
+        { role: "system", content: "You are a creative vibe generator that creates dry, funny, digital aesthetics. Think of show writers for Adult Swim, but more subtle and nuanced." },
         { role: "user", content: prompt }
       ],
       response_format: { type: "json_object" },
@@ -67,7 +169,26 @@ async function generateAdvancedVibe(twitterHandle: string): Promise<MoodMashData
     });
 
     const content = response.choices[0].message.content;
-    return content ? JSON.parse(content) : getMockVibeData(twitterHandle);
+    if (!content) {
+      console.log("No content returned from OpenAI, using mock data");
+      return getMockVibeData(twitterHandle);
+    }
+    
+    try {
+      const parsedContent = JSON.parse(content);
+      
+      // Ensure the vibe type matches what we specified (in case OpenAI didn't follow instructions)
+      const expectedVibeType = getVibeTypeFromHandle(twitterHandle);
+      if (parsedContent.vibeType !== expectedVibeType) {
+        console.log(`OpenAI changed vibe type from '${expectedVibeType}' to '${parsedContent.vibeType}'. Correcting.`);
+        parsedContent.vibeType = expectedVibeType;
+      }
+      
+      return parsedContent;
+    } catch (parseError) {
+      console.error("Error parsing OpenAI response:", parseError);
+      return getMockVibeData(twitterHandle);
+    }
     
   } catch (error) {
     console.error("OpenAI API error:", error);
@@ -78,7 +199,10 @@ async function generateAdvancedVibe(twitterHandle: string): Promise<MoodMashData
 
 // Fallback function to get mock vibe data if API call fails
 function getMockVibeData(twitterHandle: string): MoodMashData {
-  const vibeTypes = ["chaotic", "chill", "retro", "cyberpunk", "vaporwave", "cottagecore", "hyper-digital", "cosmic", "goth", "dreamcore", "ethereal", "absurdist"];
+  const vibeType = getVibeTypeFromHandle(twitterHandle);
+  
+  // Use our deterministic but varied function to set the vibe type
+  console.log(`Generated mock vibe using type: ${vibeType} for handle: ${twitterHandle}`);
   
   const quotes = [
     "Experiencing the unstoppable passage of time while staring at a loading screen",
@@ -126,13 +250,13 @@ function getMockVibeData(twitterHandle: string): MoodMashData {
     ["🥀", "📼", "🕰️", "🍦", "📺"],
     ["🍄", "🧿", "🪐", "🌈", "🧩"],
     ["🦕", "📚", "🔍", "🧸", "🧠"],
-    ["🎭", "🎪", "🎨", "🎪", "🪄"],
+    ["🎭", "🎪", "🎨", "🎧", "🪄"],
     ["🏙️", "🚶", "☕", "📓", "🚥"],
     ["🧶", "🔮", "🧵", "🧪", "🧠"],
     ["🖥️", "💾", "🔌", "📟", "👾"],
     ["🌃", "🚶", "🏮", "🌆", "🌠"],
     ["👁️", "⏳", "🗝️", "🌙", "🪐"],
-    ["🎧", "🎹", "📻", "🎷", "🪗"],
+    ["🎧", "🎹", "📻", "🎷", "🎵"],
   ];
   
   const backgroundDescriptions = [
@@ -151,24 +275,44 @@ function getMockVibeData(twitterHandle: string): MoodMashData {
     "The pattern of light reflections at the bottom of a swimming pool but in slow motion",
   ];
   
-  // Generate random indices - making the vibeIndex truly random instead of deterministic
-  const handleSum = twitterHandle.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  // Use Math.random() for vibeIndex to get a truly random vibe type
-  const vibeIndex = Math.floor(Math.random() * vibeTypes.length);
-  const quoteIndex = (handleSum * 2) % quotes.length;
-  const musicIndex = (handleSum * 3) % musicRecommendations.length;
-  const emojiIndex = (handleSum * 4) % emojiSets.length;
-  const bgIndex = (handleSum * 5) % backgroundDescriptions.length;
+  // Create hash from handle for consistent results for the same handle
+  const hashCode = twitterHandle.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   
-  // Generate random hex colors based on vibeType
-  const generateColor = () => `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+  // Deterministic selection based on hash, but add variety based on vibe type
+  const quoteIndex = (hashCode + vibeType.length) % quotes.length;
+  const musicIndex = (hashCode * 2 + vibeType.charCodeAt(0)) % musicRecommendations.length;
+  const emojiIndex = (hashCode * 3 + vibeType.length) % emojiSets.length;
+  const bgIndex = (hashCode * 4 + vibeType.charCodeAt(0)) % backgroundDescriptions.length;
   
-  return {
+  // Generate colors that match the vibe type
+  const generateVibeColor = () => {
+    // Map vibe types to color palettes
+    const colorMappings: Record<string, string[]> = {
+      'chaotic': ['#FF0000', '#FF00FF', '#00FFFF', '#FF8800', '#00FF00'],  // Bright neons
+      'chill': ['#87CEEB', '#B0E0E6', '#AFEEEE', '#E0FFFF', '#F0F8FF'],    // Soft blues
+      'retro': ['#FF6347', '#FFD700', '#40E0D0', '#FF7F50', '#00CED1'],    // 80s colors
+      'cyberpunk': ['#FF00FF', '#00FFFF', '#FF0000', '#0000FF', '#FFFF00'], // Neon
+      'vaporwave': ['#FF6AD5', '#C774E8', '#AD8CFF', '#8795E8', '#94D0FF'], // Purple-blues
+      'cottagecore': ['#8FBC8F', '#F0E68C', '#FFB6C1', '#FFDAB9', '#98FB98'], // Pastels
+      'hyper-digital': ['#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FFFFFF'], // Digital
+      'cosmic': ['#9370DB', '#8A2BE2', '#7B68EE', '#6A5ACD', '#483D8B'],   // Purples
+      'goth': ['#000000', '#696969', '#800000', '#4B0082', '#2F4F4F'],     // Dark
+      'dreamcore': ['#FF69B4', '#00BFFF', '#FF1493', '#1E90FF', '#FFFF54'], // Dreamlike
+      'ethereal': ['#E6E6FA', '#D8BFD8', '#DDA0DD', '#DA70D6', '#EE82EE']  // Lavenders
+    };
+    
+    const palette = colorMappings[vibeType] || ['#FF00FF', '#00FFFF', '#FF7700'];
+    return palette[Math.floor(Math.random() * palette.length)];
+  };
+  
+  const result = {
     quote: quotes[quoteIndex],
-    vibeType: vibeTypes[vibeIndex],
-    colorPalette: [generateColor(), generateColor(), generateColor()],
+    vibeType,
+    colorPalette: [generateVibeColor(), generateVibeColor(), generateVibeColor()],
     music: musicRecommendations[musicIndex],
     emojiSet: emojiSets[emojiIndex],
     background: backgroundDescriptions[bgIndex]
   };
+  
+  return result;
 } 
