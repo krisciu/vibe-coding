@@ -81,6 +81,7 @@ export default function Home() {
   const [popularVibes, setPopularVibes] = useState<VibeEntry[]>([]);
   const [isLoadingPopular, setIsLoadingPopular] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
   const [analyticsCount, setAnalyticsCount] = useState<number>(0);
   const [sortBy, setSortBy] = useState<"recent" | "likes">("recent");
 
@@ -105,13 +106,21 @@ export default function Home() {
   const fetchPopularVibes = async () => {
     try {
       setIsLoadingPopular(true);
+      setLeaderboardError(null);
       const response = await fetch(`/api/popular-vibes?limit=6&sort=${sortBy}`);
       const data = await response.json();
-      if (data.vibes) {
+
+      if (response.ok && data.vibes) {
         setPopularVibes(data.vibes);
+      } else if (data.error) {
+        console.error("Error from server:", data.error);
+        setLeaderboardError(data.error);
+        setPopularVibes([]);
       }
     } catch (err) {
       console.error("Error fetching popular vibes:", err);
+      setLeaderboardError("Failed to load leaderboard data");
+      setPopularVibes([]);
     } finally {
       setIsLoadingPopular(false);
     }
@@ -373,6 +382,24 @@ export default function Home() {
           {isLoadingPopular ? (
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+          ) : leaderboardError ? (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+              <p className="text-red-600 dark:text-red-400 mb-2">
+                Oops! Something&apos;s not right with our vibe database.
+              </p>
+              <p className="text-sm mb-4">
+                You might need to set up the database first:
+              </p>
+              <button
+                className="bg-red-100 hover:bg-red-200 dark:bg-red-800 dark:hover:bg-red-700 text-red-600 dark:text-red-200 px-4 py-2 rounded-md text-sm transition-colors"
+                onClick={() => window.open("/api/setup", "_blank")}
+              >
+                Setup Database Tables
+              </button>
+              <p className="text-xs mt-4 text-red-500">
+                Technical details: {leaderboardError}
+              </p>
             </div>
           ) : popularVibes.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

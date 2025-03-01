@@ -1,58 +1,36 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabase';
 
 // This is a setup endpoint to initialize our database
 // In a real production app, this would be done through migrations
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Run SQL to create the vibes table and necessary functions
-    const { error: sqlError } = await supabase.rpc('exec_sql', { 
-      sql_query: `
-        -- Create the vibes table if it doesn't exist
-        CREATE TABLE IF NOT EXISTS public.vibes (
-          id SERIAL PRIMARY KEY,
-          twitter_handle TEXT NOT NULL,
-          vibe_data JSONB NOT NULL,
-          likes INTEGER DEFAULT 0,
-          created_at TIMESTAMPTZ DEFAULT NOW()
-        );
-        
-        -- Create index on twitter_handle for faster lookups
-        CREATE INDEX IF NOT EXISTS idx_vibes_twitter_handle ON public.vibes(twitter_handle);
-        
-        -- Create a function to increment a number (for likes)
-        CREATE OR REPLACE FUNCTION increment(x integer)
-        RETURNS integer AS $$
-        BEGIN
-          RETURN x + 1;
-        END;
-        $$ LANGUAGE plpgsql;
-        
-        -- Create a function to create the vibes table (for use in the client)
-        CREATE OR REPLACE FUNCTION create_vibes_table()
-        RETURNS void AS $$
-        BEGIN
-          CREATE TABLE IF NOT EXISTS public.vibes (
-            id SERIAL PRIMARY KEY,
-            twitter_handle TEXT NOT NULL,
-            vibe_data JSONB NOT NULL,
-            likes INTEGER DEFAULT 0,
-            created_at TIMESTAMPTZ DEFAULT NOW()
-          );
-          
-          CREATE INDEX IF NOT EXISTS idx_vibes_twitter_handle ON public.vibes(twitter_handle);
-        END;
-        $$ LANGUAGE plpgsql;
-      `
-    });
+    // Check if the vibes table already exists
+    const { error: checkError } = await supabase
+      .from('vibes')
+      .select('id')
+      .limit(1);
     
-    if (sqlError) {
-      return NextResponse.json({ error: sqlError.message }, { status: 500 });
+    // If the table doesn't exist, we need to notify the user to create it manually
+    if (checkError && checkError.code === '42P01') {
+      return NextResponse.json({ 
+        error: 'Table does not exist', 
+        message: 'The vibes table does not exist. Please create it in the Supabase dashboard with the following columns: id (serial), twitter_handle (text), vibe_data (jsonb), likes (integer), created_at (timestamp)',
+        details: "Supabase doesn't allow table creation through the client API. You need to create the table in the Supabase dashboard manually."
+      }, { status: 404 });
     }
     
+    if (checkError) {
+      return NextResponse.json({ 
+        error: 'Error checking table existence', 
+        message: checkError.message 
+      }, { status: 500 });
+    }
+    
+    // Table exists, everything is set up properly
     return NextResponse.json({ 
       success: true, 
-      message: 'Database setup complete. Tables and functions created.' 
+      message: 'Database setup is complete. Tables exist and are ready to use.' 
     });
   } catch (error) {
     console.error('Database setup error:', error);

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabase';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Count the total number of vibes in the database
     const { count, error } = await supabase

@@ -34,24 +34,20 @@ export async function ensureVibesTableExists(): Promise<boolean> {
       .select('id')
       .limit(1);
     
-    // If table doesn't exist, we'll get a specific error code
+    // If table doesn't exist, we can't create it through the client API
     if (error && error.code === '42P01') {
-      console.log('Creating vibes table...');
-      
-      // Create the table using SQL
-      const { error: createError } = await supabase.rpc('create_vibes_table');
-      
-      if (createError) {
-        console.error('Error creating table:', createError);
-        return false;
-      }
-      
-      return true;
+      console.error('Vibes table does not exist. Please create it using the Supabase dashboard or visit /api/setup for instructions.');
+      return false;
+    }
+    
+    if (error) {
+      console.error('Error checking table:', error);
+      return false;
     }
     
     return true;
   } catch (error) {
-    console.error('Error checking/creating table:', error);
+    console.error('Error checking table existence:', error);
     return false;
   }
 }
@@ -60,8 +56,13 @@ export async function ensureVibesTableExists(): Promise<boolean> {
 export async function storeVibeData(twitterHandle: string, vibeData: MoodMashData): Promise<VibeEntry | null> {
   try {
     // Ensure table exists before inserting
-    await ensureVibesTableExists();
+    const tableExists = await ensureVibesTableExists();
+    if (!tableExists) {
+      console.error('Cannot store vibe data: vibes table does not exist');
+      return null;
+    }
     
+    // Table exists, proceed with insert
     const { data, error } = await supabase
       .from('vibes')
       .insert([
@@ -136,12 +137,31 @@ export async function getUserVibes(twitterHandle: string, limit: number = 5): Pr
 // Like a vibe
 export async function likeVibe(vibeId: number): Promise<boolean> {
   try {
-    const { error } = await supabase
+    // First, get the current likes count
+    const { data, error: getError } = await supabase
       .from('vibes')
-      .update({ likes: supabase.rpc('increment', { x: 1 }) })
+      .select('likes')
+      .eq('id', vibeId)
+      .single();
+      
+    if (getError) {
+      console.error('Error getting vibe:', getError);
+      return false;
+    }
+    
+    // Increment the likes count
+    const currentLikes = data?.likes || 0;
+    const { error: updateError } = await supabase
+      .from('vibes')
+      .update({ likes: currentLikes + 1 })
       .eq('id', vibeId);
       
-    return !error;
+    if (updateError) {
+      console.error('Error updating likes:', updateError);
+      return false;
+    }
+    
+    return true;
   } catch (error) {
     console.error('Error liking vibe:', error);
     return false;

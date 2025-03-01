@@ -9,6 +9,7 @@ Mood Mash is a fun, interactive web app that generates random "vibes" based on a
 - **Shareable Results**: Easily share your generated vibe on Twitter/X
 - **Fun Animations**: Enjoy dynamic, chaotic animations that match your vibe
 - **Music Suggestions**: Get a music recommendation that matches your vibe's energy
+- **Vibe Leaderboard**: See and like the most popular vibes from other users
 
 ## 🚀 Quick Start
 
@@ -25,6 +26,36 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
+
+## 🗄️ Database Setup
+
+This project uses Supabase for data storage. You need to set up the required table manually in your Supabase dashboard:
+
+1. Log in to your Supabase dashboard
+2. Select your project
+3. Go to the SQL Editor
+4. Run the following SQL:
+
+```sql
+-- Create the vibes table
+CREATE TABLE IF NOT EXISTS public.vibes (
+  id SERIAL PRIMARY KEY,
+  twitter_handle TEXT NOT NULL,
+  vibe_data JSONB NOT NULL,
+  likes INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create index on twitter_handle for faster lookups
+CREATE INDEX IF NOT EXISTS idx_vibes_twitter_handle ON public.vibes(twitter_handle);
+```
+
+5. Update your `.env.local` file with your Supabase URL and anon key:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
 ## 📱 Deployment
 
