@@ -235,22 +235,22 @@ function getMockVibeData(twitterHandle: string): MoodMashData {
   
   // Updated music recommendations to be weirder
   const musicRecommendations = [
-    "The sound of a lonely shopping cart rolling through an abandoned mall parking lot at 3AM, slowed down and reverbed",
-    "A playlist of ice cream truck music played backward through a broken speaker in an empty playground",
-    "Recordings of whales singing but pitch-shifted to sound like they're screaming",
-    "The Windows 95 startup sound stretched to 45 minutes with occasional whispers",
-    "Field recordings of an empty office building's HVAC system with occasional typewriter sounds",
-    "Muzak versions of death metal songs played on a slightly out-of-tune music box",
-    "The Seinfeld theme but every note is replaced with a different David Lynch character laughing",
-    "ASMR recordings of someone eating soup but the microphone is underwater",
-    "A compilation of every notification sound you've ever had, played simultaneously in different rooms",
-    "The sound of dial-up internet slowed down 800% and set to the rhythm of your childhood home's creaking floorboards",
-    "The exact noise a VHS tape makes when it's eaten by the machine, looped for 2 hours with subtle variations",
-    "A playlist of every doorbell you've ever heard, but they're all slightly wrong",
-    "The ambient soundscape of a liminal space where time doesn't exist properly",
-    "Recordings of someone typing very aggressively but every 13th keystroke is missing",
-    "The exact song that was playing in that dream you can't quite remember from 7 years ago",
-    "A choir of people humming different commercial jingles from the 90s while a theremin plays in the background",
+    "Aphex Twin's 'Selected Ambient Works Volume II' but only when played at 3AM in an empty parking garage",
+    "Beach House's 'Space Song' slowed down 20% and listened to through a broken cassette player",
+    "Radiohead's 'Pyramid Song' but each instrument is replaced with the sound of different kitchen appliances",
+    "Frank Ocean's 'Nights' played backwards while sitting in an empty bathtub",
+    "Boards of Canada's 'Music Has The Right To Children' but it's playing from another room in an abandoned mall",
+    "Tyler, the Creator's 'EARFQUAKE' but every bass hit causes your room's lights to flicker slightly",
+    "Björk's 'Hyperballad' listened to while staring at yourself in a mirror for exactly 7 minutes",
+    "Tame Impala's 'The Less I Know The Better' but the bass is replaced with a purring cat",
+    "The Weeknd's 'After Hours' slowed down and echoed as if playing from the bottom of an empty swimming pool",
+    "Childish Gambino's 'Redbone' but it sounds like it's playing from another dimension",
+    "Portishead's 'Roads' but it's playing on a record player that's slowly melting",
+    "Joy Division's 'Love Will Tear Us Apart' performed by a choir of elderly people who've never heard the song",
+    "David Bowie's 'Space Oddity' listened to while floating face-up in a sensory deprivation tank",
+    "Billie Eilish's 'when the party's over' but every time she whispers, something moves in your peripheral vision",
+    "Thom Yorke's 'Dawn Chorus' played at exactly sunrise while standing in an empty field",
+    "Frank Sinatra's 'Fly Me To The Moon' but it's echoing through the halls of an abandoned space station",
   ];
   
   // Updated emojis to be weirder combinations
