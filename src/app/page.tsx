@@ -81,16 +81,31 @@ export default function Home() {
   const [popularVibes, setPopularVibes] = useState<VibeEntry[]>([]);
   const [isLoadingPopular, setIsLoadingPopular] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [analyticsCount, setAnalyticsCount] = useState<number>(0);
+  const [sortBy, setSortBy] = useState<"recent" | "likes">("recent");
 
   // Fetch popular vibes on component mount
   useEffect(() => {
     fetchPopularVibes();
-  }, []);
+    fetchGenerationCount();
+  }, [sortBy]);
+
+  const fetchGenerationCount = async () => {
+    try {
+      const response = await fetch("/api/analytics");
+      const data = await response.json();
+      if (data.count) {
+        setAnalyticsCount(data.count);
+      }
+    } catch (err) {
+      console.error("Error fetching analytics:", err);
+    }
+  };
 
   const fetchPopularVibes = async () => {
     try {
       setIsLoadingPopular(true);
-      const response = await fetch("/api/popular-vibes?limit=3");
+      const response = await fetch(`/api/popular-vibes?limit=6&sort=${sortBy}`);
       const data = await response.json();
       if (data.vibes) {
         setPopularVibes(data.vibes);
@@ -129,8 +144,9 @@ export default function Home() {
 
       setMoodMash(data.vibe);
 
-      // Refresh popular vibes after generating a new one
+      // Refresh popular vibes and analytics after generating a new one
       fetchPopularVibes();
+      fetchGenerationCount();
     } catch (err) {
       console.error("Error generating vibe:", err);
       setError("Failed to generate vibe. Please try again.");
@@ -141,8 +157,33 @@ export default function Home() {
 
   // Display a popular vibe
   const displayPopularVibe = (vibe: VibeEntry) => {
-    setMoodMash(vibe.vibe_data);
+    // Type cast to ensure compatibility
+    const vibeData = vibe.vibe_data as unknown as MoodMash;
+    setMoodMash(vibeData);
     setTwitterHandle(vibe.twitter_handle);
+  };
+
+  // Like a vibe
+  const likeVibe = async (id: number | undefined) => {
+    if (!id) return;
+
+    try {
+      await fetch(`/api/like-vibe/${id}`, { method: "POST" });
+      // Update the liked vibe in the list
+      setPopularVibes((vibes) =>
+        vibes.map((vibe) => {
+          if (vibe.id === id) {
+            return {
+              ...vibe,
+              likes: (vibe.likes || 0) + 1,
+            };
+          }
+          return vibe;
+        })
+      );
+    } catch (err) {
+      console.error("Error liking vibe:", err);
+    }
   };
 
   return (
@@ -159,6 +200,11 @@ export default function Home() {
         <p className="text-lg" style={{ fontFamily: "var(--font-marker)" }}>
           Your chaotic vibe generator ✨🌈🔮
         </p>
+        {analyticsCount > 0 && (
+          <p className="text-sm mt-2 opacity-70">
+            {analyticsCount.toLocaleString()} vibes generated and counting!
+          </p>
+        )}
       </header>
 
       <main className="w-full max-w-4xl flex flex-col items-center">
@@ -290,14 +336,39 @@ export default function Home() {
 
         {/* Popular Vibes Section */}
         <section className="w-full max-w-4xl mb-12">
-          <h2
-            className="text-2xl md:text-3xl font-bold mb-6 text-center"
-            style={{ fontFamily: "var(--font-paytone)" }}
-          >
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
-              Vibe Hall of Fame
-            </span>
-          </h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2
+              className="text-2xl md:text-3xl font-bold"
+              style={{ fontFamily: "var(--font-paytone)" }}
+            >
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                Vibe Hall of Fame
+              </span>
+            </h2>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSortBy("recent")}
+                className={`px-3 py-1 rounded-full text-sm transition-all ${
+                  sortBy === "recent"
+                    ? "bg-purple-500 text-white"
+                    : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                Recent
+              </button>
+              <button
+                onClick={() => setSortBy("likes")}
+                className={`px-3 py-1 rounded-full text-sm transition-all ${
+                  sortBy === "likes"
+                    ? "bg-purple-500 text-white"
+                    : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                Most Liked
+              </button>
+            </div>
+          </div>
 
           {isLoadingPopular ? (
             <div className="flex justify-center py-8">
@@ -308,24 +379,40 @@ export default function Home() {
               {popularVibes.map((entry, index) => (
                 <div
                   key={index}
-                  className="p-4 rounded-lg overflow-hidden shadow-md cursor-pointer transition-all hover:shadow-xl bg-white/10 backdrop-blur-md"
-                  onClick={() => displayPopularVibe(entry)}
+                  className="p-4 rounded-lg overflow-hidden shadow-md transition-all hover:shadow-xl bg-white/10 backdrop-blur-md"
                 >
                   <div
-                    className="h-24 mb-3 rounded overflow-hidden"
+                    className="h-24 mb-3 rounded overflow-hidden cursor-pointer"
                     style={{
                       background: entry.vibe_data.background
                         ? getBackgroundStyle(entry.vibe_data.background)
                         : "linear-gradient(45deg, var(--vibe-sunset-orange), var(--vibe-sunset-purple))",
                     }}
+                    onClick={() => displayPopularVibe(entry)}
                   />
-                  <h3 className="font-bold mb-1">@{entry.twitter_handle}</h3>
+                  <h3
+                    className="font-bold mb-1 cursor-pointer"
+                    onClick={() => displayPopularVibe(entry)}
+                  >
+                    @{entry.twitter_handle}
+                  </h3>
                   <p className="text-sm mb-2">
                     {entry.vibe_data.vibeType.toUpperCase()} ENERGY
                   </p>
-                  <p className="text-xs opacity-70 truncate">
+                  <p className="text-xs opacity-70 truncate mb-3">
                     &quot;{entry.vibe_data.quote}&quot;
                   </p>
+                  <div className="flex justify-between items-center">
+                    <button
+                      className="text-xs px-2 py-1 bg-white/20 rounded-full hover:bg-white/30 transition-all flex items-center gap-1"
+                      onClick={() => likeVibe(entry.id)}
+                    >
+                      <span>❤️</span> {entry.likes || 0}
+                    </button>
+                    <span className="text-xs opacity-50">
+                      {new Date(entry.created_at || "").toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -339,6 +426,12 @@ export default function Home() {
 
       <footer className="mt-auto py-4 text-center opacity-80">
         <p>Made with chaotic energy ✨ Vibe Coding Project</p>
+        <button
+          className="mt-2 text-xs underline opacity-50 hover:opacity-100"
+          onClick={() => window.open("/api/setup", "_blank")}
+        >
+          Setup Database
+        </button>
         {process.env.NEXT_PUBLIC_SUPABASE_URL && (
           <p className="text-xs mt-1 opacity-50">
             Vibes are being stored for future viewing
