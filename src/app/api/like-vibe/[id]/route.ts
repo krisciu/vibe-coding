@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { likeVibe } from '@/utils/supabase';
 
+type RouteParams = {
+  params: {
+    id: string;
+  };
+};
+
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteParams
 ) {
   try {
     const id = parseInt(params.id);
