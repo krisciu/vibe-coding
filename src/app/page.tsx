@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { VibeEntry } from "@/utils/supabase";
 
 // Vibe types and data
 type VibeType =
@@ -11,124 +10,139 @@ type VibeType =
   | "retro"
   | "cyberpunk"
   | "vaporwave"
-  | "cottagecore";
+  | "cottagecore"
+  | "hyper-digital"
+  | "cosmic"
+  | "goth"
+  | "dreamcore"
+  | "ethereal"
+  | "absurdist";
 
 type MoodMash = {
-  colors: string[];
-  fontFamily: string;
   quote: string;
+  vibeType: VibeType;
+  colorPalette: string[];
   music: string;
-  emoji: string[];
+  emojiSet: string[];
   background: string;
-  vibe: VibeType;
 };
 
-// Random vibe quotes
-const QUOTES = [
-  "Vibing so hard the universe can't handle it",
-  "Not a mood, a lifestyle",
-  "Embracing the chaos one glitter bomb at a time",
-  "Too busy being iconic to care",
-  "Living life on airplane mode",
-  "Sorry I can't hear you over my own fabulousness",
-  "Just out here collecting vibes like Pokémon",
-  "Chaotic good with a sprinkle of sparkle",
-  "My personality is 80% song lyrics and 20% movie quotes",
-  "Slightly unhinged, but in a cute way",
-  "Existing somewhere between 'got my life together' and 'total mess'",
-  "Powered by chaos and caffeine",
-  "Professional daydreamer, amateur everything else",
-  "More issues than Vogue but twice as entertaining",
-];
+// Background patterns based on vibeType description
+const getBackgroundStyle = (background: string) => {
+  // This is a simplified version that could be enhanced with more pattern logic
+  if (background.includes("gradient")) {
+    return "linear-gradient(45deg, var(--vibe-sunset-orange), var(--vibe-sunset-purple))";
+  }
+  if (background.includes("cyberpunk")) {
+    return "linear-gradient(to bottom right, var(--vibe-cyberpunk-yellow), var(--vibe-cyberpunk-purple))";
+  }
+  if (background.includes("vaporwave")) {
+    return "linear-gradient(to right, var(--vibe-vaporwave-blue), var(--vibe-vaporwave-pink))";
+  }
+  if (background.includes("retro")) {
+    return "repeating-linear-gradient(45deg, var(--vibe-retro-teal), var(--vibe-retro-teal) 10px, var(--vibe-retro-pink) 10px, var(--vibe-retro-pink) 20px)";
+  }
+  if (background.includes("cosmic") || background.includes("nebula")) {
+    return "radial-gradient(circle, var(--vibe-neon-pink), var(--vibe-neon-blue))";
+  }
+  if (background.includes("glitch")) {
+    return "repeating-radial-gradient(circle at 25% 25%, var(--vibe-neon-green) 0px, var(--vibe-neon-blue) 40px)";
+  }
 
-// Random music suggestions
-const MUSIC = [
-  "Lo-fi beats to chill/study to",
-  "Hyperpop playlist that will blow your speakers",
-  "80s synthwave driving at midnight",
-  "That one song you had on repeat in 2016",
-  "Coffee shop jazz but make it chaotic",
-  "Phonk remixes of classical music",
-  "Songs that make you feel like the main character",
-  "Nostalgic hits from your childhood",
-  "Cottagecore folk with a hint of witchcraft",
-  "Glitchcore to question your reality",
-  "Dreamy bedroom pop for stargazing",
-  "Ambient sounds of a shopping mall in 1992",
-];
+  // Default fallback
+  return "linear-gradient(45deg, var(--vibe-sunset-orange), var(--vibe-sunset-purple))";
+};
 
-// Random emoji sets for different vibes
-const EMOJI_SETS = [
-  ["✨", "🔮", "🌙", "💫", "🪐"],
-  ["🌈", "🦄", "🍭", "🧁", "🫧"],
-  ["🔥", "💯", "🤪", "💅", "🎭"],
-  ["🌊", "🧿", "🦋", "🌸", "🕊️"],
-  ["🖤", "🥀", "🩸", "🗡️", "🕸️"],
-  ["🤖", "👾", "🎮", "💾", "📡"],
-  ["🌿", "🍄", "🌻", "🐝", "🍯"],
-];
-
-// Background patterns
-const BACKGROUNDS = [
-  "radial-gradient(circle, var(--vibe-neon-pink), var(--vibe-neon-blue))",
-  "linear-gradient(45deg, var(--vibe-sunset-orange), var(--vibe-sunset-purple))",
-  "repeating-linear-gradient(45deg, var(--vibe-retro-teal), var(--vibe-retro-teal) 10px, var(--vibe-retro-pink) 10px, var(--vibe-retro-pink) 20px)",
-  "linear-gradient(to right, var(--vibe-vaporwave-blue), var(--vibe-vaporwave-pink))",
-  "linear-gradient(to bottom right, var(--vibe-cyberpunk-yellow), var(--vibe-cyberpunk-purple))",
-  "repeating-radial-gradient(circle at 25% 25%, var(--vibe-neon-green) 0px, var(--vibe-neon-blue) 40px)",
-];
-
-// Font options
-const FONTS = [
-  "var(--font-paytone)",
-  "var(--font-cherry)",
-  "var(--font-marker)",
-  "var(--font-mono)",
-];
-
-// Function to generate a random mood mash
-const generateRandomMoodMash = (twitterHandle: string): MoodMash => {
-  // We're just doing random generation for now
-  // Later we could use the Twitter handle to fetch real data
-
-  const randomColors = [
-    `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-    `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-    `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-  ];
-
-  return {
-    colors: randomColors,
-    fontFamily: FONTS[Math.floor(Math.random() * FONTS.length)],
-    quote: QUOTES[Math.floor(Math.random() * QUOTES.length)],
-    music: MUSIC[Math.floor(Math.random() * MUSIC.length)],
-    emoji: EMOJI_SETS[Math.floor(Math.random() * EMOJI_SETS.length)],
-    background: BACKGROUNDS[Math.floor(Math.random() * BACKGROUNDS.length)],
-    vibe: [
-      "chaotic",
-      "chill",
-      "retro",
-      "cyberpunk",
-      "vaporwave",
-      "cottagecore",
-    ][Math.floor(Math.random() * 6)] as VibeType,
-  };
+// Font selection based on vibeType
+const getFontFamily = (vibeType: VibeType) => {
+  switch (vibeType.toLowerCase()) {
+    case "chaotic":
+    case "absurdist":
+      return "var(--font-cherry)";
+    case "cyberpunk":
+    case "hyper-digital":
+      return "var(--font-mono)";
+    case "retro":
+    case "vaporwave":
+      return "var(--font-paytone)";
+    case "cottagecore":
+    case "dreamcore":
+    case "ethereal":
+      return "var(--font-marker)";
+    default:
+      return "var(--font-cherry)";
+  }
 };
 
 export default function Home() {
   const [twitterHandle, setTwitterHandle] = useState("");
   const [moodMash, setMoodMash] = useState<MoodMash | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [popularVibes, setPopularVibes] = useState<VibeEntry[]>([]);
+  const [isLoadingPopular, setIsLoadingPopular] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const generateMoodMash = () => {
+  // Fetch popular vibes on component mount
+  useEffect(() => {
+    fetchPopularVibes();
+  }, []);
+
+  const fetchPopularVibes = async () => {
+    try {
+      setIsLoadingPopular(true);
+      const response = await fetch("/api/popular-vibes?limit=3");
+      const data = await response.json();
+      if (data.vibes) {
+        setPopularVibes(data.vibes);
+      }
+    } catch (err) {
+      console.error("Error fetching popular vibes:", err);
+    } finally {
+      setIsLoadingPopular(false);
+    }
+  };
+
+  const generateMoodMash = async () => {
+    if (!twitterHandle.trim()) {
+      setError("Please enter a Twitter/X handle");
+      return;
+    }
+
+    setError(null);
     setIsGenerating(true);
 
-    // Simulate loading for effect
-    setTimeout(() => {
-      const newMoodMash = generateRandomMoodMash(twitterHandle);
-      setMoodMash(newMoodMash);
+    try {
+      // Call our API route to generate a vibe
+      const response = await fetch("/api/generate-vibe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ twitterHandle }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setMoodMash(data.vibe);
+
+      // Refresh popular vibes after generating a new one
+      fetchPopularVibes();
+    } catch (err) {
+      console.error("Error generating vibe:", err);
+      setError("Failed to generate vibe. Please try again.");
+    } finally {
       setIsGenerating(false);
-    }, 1200);
+    }
+  };
+
+  // Display a popular vibe
+  const displayPopularVibe = (vibe: VibeEntry) => {
+    setMoodMash(vibe.vibe_data);
+    setTwitterHandle(vibe.twitter_handle);
   };
 
   return (
@@ -170,6 +184,7 @@ export default function Home() {
                 className="flex-1 min-w-0 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded-r-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
+            {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
             <button
               onClick={generateMoodMash}
               disabled={isGenerating}
@@ -189,24 +204,26 @@ export default function Home() {
           <div
             className="w-full p-8 rounded-xl shadow-2xl mb-12 transition-all relative overflow-hidden"
             style={{
-              background: moodMash.background,
-              fontFamily: moodMash.fontFamily,
+              background: moodMash.background
+                ? getBackgroundStyle(moodMash.background)
+                : moodMash.background,
+              fontFamily: getFontFamily(moodMash.vibeType),
             }}
           >
             <div className="relative z-10">
-              <div className="flex justify-between items-start mb-6">
+              <div className="flex justify-between items-start mb-6 flex-wrap gap-2">
                 <h2 className="text-3xl md:text-4xl font-bold mb-2 text-white drop-shadow-md">
-                  @{twitterHandle}'s Vibe
+                  @{twitterHandle}&apos;s Vibe
                 </h2>
                 <div className="bg-white/20 backdrop-blur-md p-2 rounded-lg">
                   <p className="text-xl font-bold text-white">
-                    {moodMash.vibe.toUpperCase()} ENERGY
+                    {moodMash.vibeType.toUpperCase()} ENERGY
                   </p>
                 </div>
               </div>
 
               <p className="text-2xl md:text-3xl mb-6 text-white drop-shadow-md float">
-                "{moodMash.quote}"
+                &quot;{moodMash.quote}&quot;
               </p>
 
               <div className="bg-black/30 backdrop-blur-md p-4 rounded-lg mb-4 pulse">
@@ -217,7 +234,7 @@ export default function Home() {
               </div>
 
               <div className="flex flex-wrap gap-2 mb-6">
-                {moodMash.emoji.map((emoji, i) => (
+                {moodMash.emojiSet.map((emoji, i) => (
                   <span
                     key={i}
                     className="text-4xl float"
@@ -228,7 +245,7 @@ export default function Home() {
                 ))}
               </div>
 
-              <div className="flex gap-3 mt-6">
+              <div className="flex gap-3 mt-6 flex-wrap">
                 <button
                   className="bg-black/40 text-white px-4 py-2 rounded-full hover:bg-black/60 transition-all"
                   onClick={() => generateMoodMash()}
@@ -239,7 +256,7 @@ export default function Home() {
                   className="bg-[#1DA1F2]/90 text-white px-4 py-2 rounded-full hover:bg-[#1DA1F2] transition-all"
                   onClick={() => {
                     window.open(
-                      `https://twitter.com/intent/tweet?text=I just generated my vibe with Mood Mash! My energy is ${moodMash.vibe.toUpperCase()} and my quote is "${
+                      `https://twitter.com/intent/tweet?text=I just generated my vibe with Mood Mash! My energy is ${moodMash.vibeType.toUpperCase()} and my quote is "${
                         moodMash.quote
                       }" %0A%0AGenerate yours at moodmash.vercel.app`,
                       "_blank"
@@ -252,7 +269,7 @@ export default function Home() {
             </div>
 
             {/* Decorative elements */}
-            {moodMash.colors.map((color, i) => (
+            {moodMash.colorPalette.map((color, i) => (
               <div
                 key={i}
                 className="absolute rounded-full opacity-70 spin"
@@ -270,10 +287,63 @@ export default function Home() {
             ))}
           </div>
         )}
+
+        {/* Popular Vibes Section */}
+        <section className="w-full max-w-4xl mb-12">
+          <h2
+            className="text-2xl md:text-3xl font-bold mb-6 text-center"
+            style={{ fontFamily: "var(--font-paytone)" }}
+          >
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+              Vibe Hall of Fame
+            </span>
+          </h2>
+
+          {isLoadingPopular ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+          ) : popularVibes.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {popularVibes.map((entry, index) => (
+                <div
+                  key={index}
+                  className="p-4 rounded-lg overflow-hidden shadow-md cursor-pointer transition-all hover:shadow-xl bg-white/10 backdrop-blur-md"
+                  onClick={() => displayPopularVibe(entry)}
+                >
+                  <div
+                    className="h-24 mb-3 rounded overflow-hidden"
+                    style={{
+                      background: entry.vibe_data.background
+                        ? getBackgroundStyle(entry.vibe_data.background)
+                        : "linear-gradient(45deg, var(--vibe-sunset-orange), var(--vibe-sunset-purple))",
+                    }}
+                  />
+                  <h3 className="font-bold mb-1">@{entry.twitter_handle}</h3>
+                  <p className="text-sm mb-2">
+                    {entry.vibe_data.vibeType.toUpperCase()} ENERGY
+                  </p>
+                  <p className="text-xs opacity-70 truncate">
+                    &quot;{entry.vibe_data.quote}&quot;
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center opacity-70 py-8">
+              No vibes have been created yet. Be the first!
+            </p>
+          )}
+        </section>
       </main>
 
       <footer className="mt-auto py-4 text-center opacity-80">
         <p>Made with chaotic energy ✨ Vibe Coding Project</p>
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <p className="text-xs mt-1 opacity-50">
+            Vibes are being stored for future viewing
+          </p>
+        )}
       </footer>
     </div>
   );
