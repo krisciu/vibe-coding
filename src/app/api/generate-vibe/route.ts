@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { storeVibeData } from '@/utils/supabase';
 
 // Initialize OpenAI client
 // Note: You'll need to add your API key to your environment variables
@@ -19,8 +20,10 @@ export async function POST(request: NextRequest) {
     // Generate advanced vibe using OpenAI
     const vibeResponse = await generateAdvancedVibe(twitterHandle);
     
-    // Store the vibe data in database (will implement later)
-    // await storeVibeData(twitterHandle, vibeResponse);
+    // Store the vibe data in database
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      await storeVibeData(twitterHandle, vibeResponse);
+    }
     
     return NextResponse.json({ vibe: vibeResponse });
   } catch (error) {
