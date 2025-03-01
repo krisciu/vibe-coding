@@ -76,6 +76,7 @@ const getFontFamily = (vibeType: VibeType) => {
 
 export default function Home() {
   const [twitterHandle, setTwitterHandle] = useState("");
+  const [generatedHandle, setGeneratedHandle] = useState<string | null>(null);
   const [moodMash, setMoodMash] = useState<MoodMash | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [popularVibes, setPopularVibes] = useState<VibeEntry[]>([]);
@@ -132,6 +133,19 @@ export default function Home() {
       return;
     }
 
+    // Add client-side validation to match the server validation
+    const sanitizedHandle = twitterHandle.startsWith("@")
+      ? twitterHandle.substring(1)
+      : twitterHandle;
+
+    // Check if handle contains invalid characters
+    if (!/^[A-Za-z0-9_]{1,15}$/.test(sanitizedHandle)) {
+      setError(
+        "Invalid Twitter handle. Must be 1-15 characters and can only contain letters, numbers, and underscores."
+      );
+      return;
+    }
+
     setError(null);
     setIsGenerating(true);
 
@@ -152,6 +166,8 @@ export default function Home() {
       }
 
       setMoodMash(data.vibe);
+      // Store the handle that was used for generation
+      setGeneratedHandle(twitterHandle);
 
       // Refresh popular vibes and analytics after generating a new one
       fetchPopularVibes();
@@ -236,22 +252,41 @@ export default function Home() {
                 value={twitterHandle}
                 onChange={(e) => setTwitterHandle(e.target.value)}
                 placeholder="yourhandle"
-                className="flex-1 min-w-0 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded-r-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className={`flex-1 min-w-0 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded-r-md focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                  moodMash ? "bg-gray-100 dark:bg-gray-700" : ""
+                }`}
+                disabled={moodMash !== null}
               />
             </div>
             {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
-            <button
-              onClick={generateMoodMash}
-              disabled={isGenerating}
-              className={`py-3 px-4 font-bold rounded-lg transition-all ${
-                isGenerating
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
-              }`}
-              style={{ fontFamily: "var(--font-paytone)" }}
-            >
-              {isGenerating ? "Generating..." : "Generate My Vibe!"}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={generateMoodMash}
+                disabled={isGenerating || moodMash !== null}
+                className={`py-3 px-4 font-bold rounded-lg transition-all flex-1 ${
+                  isGenerating || moodMash !== null
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                }`}
+                style={{ fontFamily: "var(--font-paytone)" }}
+              >
+                {isGenerating ? "Generating..." : "Generate My Vibe!"}
+              </button>
+
+              {moodMash && (
+                <button
+                  onClick={() => {
+                    setMoodMash(null);
+                    setGeneratedHandle(null);
+                    setTwitterHandle("");
+                  }}
+                  className="py-3 px-4 font-bold rounded-lg transition-all bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
+                  style={{ fontFamily: "var(--font-paytone)" }}
+                >
+                  Reset
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -268,7 +303,7 @@ export default function Home() {
             <div className="relative z-10">
               <div className="flex justify-between items-start mb-6 flex-wrap gap-2">
                 <h2 className="text-3xl md:text-4xl font-bold mb-2 text-white drop-shadow-md">
-                  @{twitterHandle}&apos;s Vibe
+                  @{generatedHandle}
                 </h2>
                 <div className="bg-white/20 backdrop-blur-md p-2 rounded-lg">
                   <p className="text-xl font-bold text-white">
