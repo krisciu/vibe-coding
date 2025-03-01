@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-paytone: var(--font-paytone);
+  --font-cherry: var(--font-cherry-bomb);
+  --font-marker: var(--font-marker);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  
+  /* Vibe palette options */
+  --vibe-neon-pink: #ff00ff;
+  --vibe-neon-blue: #00f2ff;
+  --vibe-neon-green: #39ff14;
+  --vibe-sunset-orange: #ff7700;
+  --vibe-sunset-purple: #9900ff;
+  --vibe-retro-teal: #08ffc8;
+  --vibe-retro-pink: #ff5995;
+  --vibe-vaporwave-blue: #0093dd;
+  --vibe-vaporwave-pink: #ff71ce;
+  --vibe-cyberpunk-yellow: #f7f01d;
+  --vibe-cyberpunk-purple: #7b00ff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.spin {
+  animation: spin 10s linear infinite;
+}
+
+.pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
