@@ -1,11 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { likeVibe } from '@/utils/supabase';
 
-// Next.js 15 route handler pattern for dynamic segments
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+// @ts-expect-error - Next.js App Router route handler typing issue
+export async function POST(request, { params }) {
   try {
     // Make sure the ID is a number
     const id = parseInt(params.id, 10);

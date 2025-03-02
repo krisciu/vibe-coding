@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { VibeEntry } from "@/utils/supabase";
 
 // Vibe types and data
@@ -87,26 +87,8 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<"recent" | "likes">("recent");
   const [likedVibes, setLikedVibes] = useState<Set<number>>(new Set());
 
-  // Fetch popular vibes on component mount
-  useEffect(() => {
-    fetchPopularVibes();
-    fetchGenerationCount();
-
-    // Load previously liked vibes from localStorage
-    const storedLikedVibes = localStorage.getItem("likedVibes");
-    if (storedLikedVibes) {
-      try {
-        const likedIds = JSON.parse(storedLikedVibes);
-        setLikedVibes(new Set(likedIds));
-      } catch (e) {
-        console.error("Error parsing liked vibes from localStorage:", e);
-        // Reset localStorage if corrupted
-        localStorage.setItem("likedVibes", JSON.stringify([]));
-      }
-    }
-  }, [sortBy]);
-
-  const fetchGenerationCount = async () => {
+  // Memoize the fetch functions to avoid dependency array issues
+  const fetchGenerationCount = useCallback(async () => {
     try {
       const response = await fetch("/api/analytics");
       const data = await response.json();
@@ -116,9 +98,9 @@ export default function Home() {
     } catch (err) {
       console.error("Error fetching analytics:", err);
     }
-  };
+  }, []);
 
-  const fetchPopularVibes = async () => {
+  const fetchPopularVibes = useCallback(async () => {
     try {
       setIsLoadingPopular(true);
       setLeaderboardError(null);
@@ -139,7 +121,26 @@ export default function Home() {
     } finally {
       setIsLoadingPopular(false);
     }
-  };
+  }, [sortBy, setIsLoadingPopular, setLeaderboardError, setPopularVibes]);
+
+  // Fetch popular vibes on component mount
+  useEffect(() => {
+    fetchPopularVibes();
+    fetchGenerationCount();
+
+    // Load previously liked vibes from localStorage
+    const storedLikedVibes = localStorage.getItem("likedVibes");
+    if (storedLikedVibes) {
+      try {
+        const likedIds = JSON.parse(storedLikedVibes);
+        setLikedVibes(new Set(likedIds));
+      } catch (e) {
+        console.error("Error parsing liked vibes from localStorage:", e);
+        // Reset localStorage if corrupted
+        localStorage.setItem("likedVibes", JSON.stringify([]));
+      }
+    }
+  }, [sortBy, fetchPopularVibes, fetchGenerationCount]);
 
   const generateMoodMash = async () => {
     if (!twitterHandle.trim()) {
