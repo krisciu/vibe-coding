@@ -141,22 +141,24 @@ function getVibeTypeFromHandle(handle: string): string {
 }
 
 async function generateAdvancedVibe(twitterHandle: string): Promise<MoodMashData> {
-  // Define prompt for the AI - make it quirky but not too extreme
-  const prompt = `Generate a creative, QUIRKY "vibe" for Twitter/X user @${twitterHandle}.
+  // Define prompt for the AI - make it more deranged but thematically consistent
+  const vibeType = getVibeTypeFromHandle(twitterHandle);
   
-  Make the quote witty, unexpected, and a bit strange - think of a mix between Adult Swim, surrealist humor, and internet meme culture. It should be memorable but not disturbing.
+  const prompt = `Generate a creative, slightly DERANGED "vibe" for Twitter/X user @${twitterHandle} with a vibe type of "${vibeType}".
   
-  The quote should feel like an amusing shower thought or an unexpected observation that makes people smile - weird but not unsettling.
+  The vibe should be thematically consistent - ALL elements should clearly reflect the "${vibeType}" aesthetic.
+  
+  Make the quote unsettling but not horrifying - think of a mix between Adult Swim at 3AM, existential dread, and internet weird-core. It should be memorable, slightly disturbing, but not traumatizing or offensive.
   
   Return a JSON object with the following properties:
-  - quote: A unique, quirky quote that represents their vibe (offbeat humor, weird observations, memorable lines)
-  - vibeType: "${getVibeTypeFromHandle(twitterHandle)}" (do not change this value)
-  - colorPalette: Array of 3 hex color codes that match the vibe
-  - music: A specific music recommendation that matches the vibe (specific artist/song with a quirky listening scenario)
-  - emojiSet: Array of 5 emojis that represent the vibe (use unusual but fun combinations)
-  - background: A text description of a visual background pattern that is dreamlike or unusual but not disturbing
+  - quote: A unique, slightly deranged quote that reflects the "${vibeType}" vibe (dark humor, existential thoughts, or bizarre observations that match this specific aesthetic)
+  - vibeType: "${vibeType}" (do not change this value)
+  - colorPalette: Array of 3 hex color codes that specifically match the "${vibeType}" aesthetic
+  - music: A specific music recommendation that perfectly matches the "${vibeType}" vibe (specific artist/song with a slightly unsettling listening scenario)
+  - emojiSet: Array of 5 emojis that specifically represent the "${vibeType}" vibe (unusual combinations that feel thematically linked)
+  - background: A text description of a visual background pattern that matches the "${vibeType}" aesthetic with a slightly unsettling twist
 
-  Make it creative and weird, but fun. DO NOT include any explanation, ONLY return the valid JSON.`;
+  Make it thematically consistent, slightly unnerving, but not extremely disturbing. DO NOT include any explanation, ONLY return the valid JSON.`;
 
   try {
     // If no API key is available, return mock data
@@ -168,11 +170,11 @@ async function generateAdvancedVibe(twitterHandle: string): Promise<MoodMashData
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a creative vibe generator that creates quirky, unusual digital aesthetics. Think of Adult Swim bumpers, internet culture, and surrealist humor. You create content that is weird and memorable, but fun rather than disturbing." },
+        { role: "system", content: "You are a creative vibe generator that creates unsettling, thematically consistent digital aesthetics. You create content that feels slightly off, a bit unsettling, but not horrifying or traumatizing. Each element you create should align with the specified vibe type." },
         { role: "user", content: prompt }
       ],
       response_format: { type: "json_object" },
-      temperature: 0.9, // High but not extreme temperature for creative outputs
+      temperature: 0.85, // High but not extreme temperature for creative outputs
     });
 
     const content = response.choices[0].message.content;
@@ -185,10 +187,9 @@ async function generateAdvancedVibe(twitterHandle: string): Promise<MoodMashData
       const parsedContent = JSON.parse(content);
       
       // Ensure the vibe type matches what we specified (in case OpenAI didn't follow instructions)
-      const expectedVibeType = getVibeTypeFromHandle(twitterHandle);
-      if (parsedContent.vibeType !== expectedVibeType) {
-        console.log(`OpenAI changed vibe type from '${expectedVibeType}' to '${parsedContent.vibeType}'. Correcting.`);
-        parsedContent.vibeType = expectedVibeType;
+      if (parsedContent.vibeType !== vibeType) {
+        console.log(`OpenAI changed vibe type from '${vibeType}' to '${parsedContent.vibeType}'. Correcting.`);
+        parsedContent.vibeType = vibeType;
       }
       
       return parsedContent;
@@ -208,142 +209,221 @@ async function generateAdvancedVibe(twitterHandle: string): Promise<MoodMashData
 function getMockVibeData(twitterHandle: string): MoodMashData {
   const vibeType = getVibeTypeFromHandle(twitterHandle);
   
-  // Use our deterministic but varied function to set the vibe type
-  console.log(`Generated mock vibe using type: ${vibeType} for handle: ${twitterHandle}`);
+  // Create a set of thematically linked content based on vibe type
+  const vibeContent: Record<string, {
+    quotes: string[],
+    backgrounds: string[],
+    music: string[],
+    emojiSets: string[][],
+    colors: string[]
+  }> = {
+    // Chaotic vibe content - erratic and unpredictable
+    'chaotic': {
+      quotes: [
+        "My thoughts are a browser with 74 tabs open and I can hear each one screaming",
+        "Sometimes I set alarms for 3:47 AM just to confuse my future self",
+        "The void stares back and occasionally it winks",
+        "I alphabetize my intrusive thoughts just to keep them organized"
+      ],
+      backgrounds: [
+        "Glitching pixels that occasionally form recognizable shapes before dissolving",
+        "Static noise with random flashes of neon colors that form patterns only visible from the corner of your eye",
+        "Rapidly shifting geometric shapes that seem to be trying to escape the screen"
+      ],
+      music: [
+        "100 gecs '745 sticky' played simultaneously from three different devices slightly out of sync",
+        "Death Grips 'Guillotine' but every bass drop makes your room temperature drop 1 degree",
+        "Aphex Twin's 'Come To Daddy' listened to while organizing your sock drawer at 2AM"
+      ],
+      emojiSets: [
+        ["🔥", "🤪", "🌀", "👁️", "⚡"],
+        ["🌪️", "🤯", "🎭", "🧠", "🔮"],
+        ["💥", "🥴", "🎪", "🧿", "💫"]
+      ],
+      colors: ['#FF00FF', '#00FFFF', '#FF0000', '#FFFF00', '#00FF00']
+    },
+    
+    // Chill vibe content - relaxed but slightly off
+    'chill': {
+      quotes: [
+        "I'm so relaxed I might just dissolve into the couch and become one with the universe",
+        "Sometimes I think about how plants are just silently judging our life choices",
+        "The best naps happen when you're supposed to be doing something important",
+        "Time isn't real when you're staring at clouds that look like your childhood memories"
+      ],
+      backgrounds: [
+        "Slow-moving pastel clouds that occasionally form faces when you're not looking directly at them",
+        "Gently rippling water with mysterious shadows passing underneath",
+        "Lo-fi pixel art of a rainy window with occasional lightning flashes that illuminate strange silhouettes"
+      ],
+      music: [
+        "Tycho's 'Dive' played at half speed while watching ice cubes melt in real time",
+        "Mac DeMarco's 'Chamber of Reflection' but it sounds like it's playing from an empty apartment next door",
+        "Nujabes' 'Aruarian Dance' listened to while watching dust particles float in sunbeams"
+      ],
+      emojiSets: [
+        ["🌊", "💭", "🌿", "👁️", "✨"],
+        ["🍃", "🧘", "🌙", "🔮", "🪐"],
+        ["☁️", "🧊", "🧿", "🪷", "🌌"]
+      ],
+      colors: ['#87CEEB', '#B0E0E6', '#AFEEEE', '#E0FFFF', '#F0F8FF']
+    },
+    
+    // Retro vibe content - nostalgic with a twist
+    'retro': {
+      quotes: [
+        "The static between TV channels at 3AM knows more about you than your therapist",
+        "VHS tapes remember every moment you've forgotten",
+        "Looking at old photos of yourself feels like recognizing a stranger who's wearing your skin",
+        "Nostalgia is just the brain's way of making you homesick for places that never existed"
+      ],
+      backgrounds: [
+        "VHS tracking errors that occasionally reveal frames from videos you don't remember watching",
+        "80s grid patterns with glowing lines that seem to lead somewhere just out of frame",
+        "Vintage wallpaper patterns that shift and change when viewed in reflective surfaces"
+      ],
+      music: [
+        "The Cure's 'Pictures of You' played on a Walkman with dying batteries while looking through old yearbooks",
+        "Talking Heads' 'This Must Be The Place' but it sounds like it's coming from a neighbor's pool party in 1986",
+        "New Order's 'Blue Monday' on vinyl that keeps skipping at the exact same moment every time"
+      ],
+      emojiSets: [
+        ["📺", "📼", "🕹️", "👾", "💾"],
+        ["🎮", "📻", "🧩", "🪩", "📟"],
+        ["📸", "🪓", "🧠", "👁️", "📠"]
+      ],
+      colors: ['#FF6347', '#FFD700', '#40E0D0', '#FF7F50', '#00CED1']
+    },
+    
+    // More vibe types with thematically consistent content
+    'cyberpunk': {
+      quotes: [
+        "My digital footprint is probably more interesting than my actual personality",
+        "Sometimes I feel like I'm just a glitch in someone else's simulation",
+        "The line between my online self and real self isn't just blurred—it's been deleted",
+        "Every time my phone dies I experience an existential crisis"
+      ],
+      backgrounds: [
+        "A neon-lit cityscape where advertisements occasionally display your private thoughts",
+        "Digital rain of code that, if you look closely, contains fragments of your search history",
+        "Circuit board patterns that pulse with electricity, forming neural network-like structures"
+      ],
+      music: [
+        "Perturbator's 'Future Club' played through malfunctioning earbuds that whisper subliminal messages",
+        "Gesaffelstein's 'Pursuit' listened to while watching security camera footage of empty streets",
+        "Crystal Castles' 'Not In Love' blasting from a car with tinted windows that's been parked outside your house for days"
+      ],
+      emojiSets: [
+        ["🤖", "👁️", "🔌", "💊", "⚠️"],
+        ["🧠", "💉", "📡", "👾", "🔬"],
+        ["🧿", "💾", "📱", "🧪", "🔋"]
+      ],
+      colors: ['#FF00FF', '#00FFFF', '#FF0000', '#0000FF', '#FFFF00']
+    },
+    
+    'vaporwave': {
+      quotes: [
+        "If you listen closely to mall muzak, you can hear the hidden frequencies of nostalgia",
+        "Every abandoned shopping mall is a monument to forgotten dreams",
+        "Sometimes I feel like a Windows 95 screensaver just bouncing endlessly against the edges of reality",
+        "Time is just a construct made by people who were uncomfortable with eternity"
+      ],
+      backgrounds: [
+        "Endless rows of Roman columns against a sunset gradient that never quite feels natural",
+        "Glitchy VHS-quality footage of empty shopping malls with occasional glimpses of figures standing perfectly still",
+        "Pixelated palm trees swaying in digital wind against a gradient sky that cycles through unnatural colors"
+      ],
+      music: [
+        "Macintosh Plus's 'リサフランク420 / 現代のコンピュー' played in an empty food court at an abandoned mall",
+        "Saint Pepsi's 'Private Caller' but every time the sample repeats you notice a new detail in your surroundings",
+        "Chuck Person's 'Eccojams Vol. 1' listened to while driving through a city that doesn't appear on any map"
+      ],
+      emojiSets: [
+        ["🗿", "🌴", "💾", "🏛️", "🌇"],
+        ["🐬", "📺", "💎", "👁️", "🌊"],
+        ["☕", "👤", "🖥️", "🏙️", "🕰️"]
+      ],
+      colors: ['#FF6AD5', '#C774E8', '#AD8CFF', '#8795E8', '#94D0FF']
+    },
+    
+    'goth': {
+      quotes: [
+        "I water my plants with my tears—they're thriving",
+        "I don't fear the darkness; I am what hides within it",
+        "Every cemetery is just a library where no one can read the stories anymore",
+        "My shadow sometimes stays in place when I walk away"
+      ],
+      backgrounds: [
+        "Victorian wallpaper patterns that seem to form faces when viewed from peripheral vision",
+        "Foggy graveyard with stone angels that appear to be in different positions when you look back at them",
+        "Dark fabric textures with subtle movements like something is crawling underneath"
+      ],
+      music: [
+        "The Cure's 'Lullaby' listened to while arranging dried flowers at midnight",
+        "Bauhaus's 'Bela Lugosi's Dead' played on a record player that started on its own",
+        "Sisters of Mercy's 'Temple of Love' heard while wandering through an old cemetery during a light rain"
+      ],
+      emojiSets: [
+        ["🖤", "🕸️", "🥀", "👁️", "🦇"],
+        ["⚰️", "🔮", "🕯️", "🪦", "🌑"],
+        ["🧛", "🧠", "⛓️", "🩸", "🐈‍⬛"]
+      ],
+      colors: ['#000000', '#4A0000', '#6D6D6D', '#27003F', '#0F0F0F']
+    },
+    
+    // Default fallback for any other vibe types
+    'default': {
+      quotes: [
+        "Sometimes I can feel my skeleton trying to escape",
+        "My brain plays elevator music 24/7 but occasionally it's reversed",
+        "Reality is just a collective hallucination we've all agreed to participate in",
+        "I organize my thoughts alphabetically but the alphabet keeps changing"
+      ],
+      backgrounds: [
+        "Subtle patterns that shift and change when you're not looking directly at them",
+        "Layers of translucent colors that seem to be hiding messages or faces",
+        "Abstract shapes that almost form recognizable objects but never quite resolve"
+      ],
+      music: [
+        "Radiohead's 'Everything In Its Right Place' but it sounds like it's coming from inside your walls",
+        "Björk's 'Army of Me' listened to while standing perfectly still in an empty elevator",
+        "David Bowie's 'Space Oddity' playing from a radio that you're sure was unplugged"
+      ],
+      emojiSets: [
+        ["👁️", "🧠", "🪞", "🕰️", "🌀"],
+        ["🔮", "👄", "⏳", "🧿", "🎭"],
+        ["🧩", "⚠️", "💭", "🪄", "🔍"]
+      ],
+      colors: ['#FF00FF', '#00FFFF', '#FF7700', '#00FF00', '#0000FF']
+    }
+  };
   
-  // Updated quotes to be quirky but not disturbing
-  const quotes = [
-    "I don't always understand my life choices, but neither does my FBI agent",
-    "If trees could use social media, they'd just post pictures of themselves standing around",
-    "My brain has too many tabs open and I can't find where the music is coming from",
-    "I wish my grass was emo so it would cut itself",
-    "I'm not saying I'm Batman, but no one has ever seen me and Batman in the same room",
-    "Sometimes I talk to myself, then we both laugh at what I said",
-    "My bed is a magical place where I suddenly remember everything I was supposed to do",
-    "I put the 'pro' in procrastination and the 'nap' in inappropriate times to sleep",
-    "People say nothing is impossible, but I do nothing every day",
-    "Life is soup, I am fork",
-    "My room isn't messy, it's an interactive art installation titled 'Who Needs Floor Space Anyway?'",
-    "Every time I check the time it's always a different number",
-    "Sometimes I wonder if clouds look down and think those humans look like ants",
-    "If Plan A doesn't work, don't worry. The alphabet has 25 more letters",
-    "Some people want to watch the world burn. I just want to know if you've tried turning it off and back on again",
-    "My passwords are protected by amnesia",
-    "Life hack: You can't lose your keys if you never leave your house",
-    "My playlist is a mystery novel where every song is a suspect",
-  ];
+  // Use vibe type to get appropriate content or fall back to default
+  const content = vibeContent[vibeType] || vibeContent['default'];
   
-  // Updated backgrounds to be less unsettling
-  const backgroundDescriptions = [
-    "A gradient of sunset colors with tiny animated shooting stars",
-    "Retro grid lines that occasionally wiggle like they're dancing to music",
-    "Slow-moving bubbles that shimmer with rainbow colors when they overlap",
-    "A pattern of tiny geometric shapes that slowly rotate in different directions",
-    "Watercolor splotches that gently pulse to an invisible beat",
-    "A desktop wallpaper that looks like it escaped from Windows 98",
-    "Floating digital confetti that never quite lands anywhere",
-    "Pastel clouds that drift by as if in a time-lapse video",
-    "A field of digital flowers that bloom when you look at them too long",
-    "Pixel art waves that ripple across the background",
-    "A star field where occasionally one star winks at you",
-    "A collection of tiny doodles that seem to be playing hide and seek",
-    "Gentle neon outlines that trace invisible objects",
-  ];
-  
-  // Updated music recommendations to be quirky but not too extreme
-  const musicRecommendations = [
-    "Beach House's 'Space Song' slowed down 20% and listened to through a broken cassette player",
-    "Radiohead's 'Pyramid Song' but each instrument is replaced with the sound of different kitchen appliances",
-    "Frank Ocean's 'Nights' played backwards while sitting in an empty bathtub",
-    "Boards of Canada's 'Music Has The Right To Children' but it's playing from another room in an abandoned mall",
-    "Tyler, the Creator's 'EARFQUAKE' but every bass hit causes your room's lights to flicker slightly",
-    "Björk's 'Hyperballad' listened to while staring at yourself in a mirror for exactly 7 minutes",
-    "Tame Impala's 'The Less I Know The Better' but the bass is replaced with a purring cat",
-    "The Weeknd's 'After Hours' slowed down and echoed as if playing from the bottom of an empty swimming pool",
-    "Childish Gambino's 'Redbone' but it sounds like it's playing from another dimension",
-    "Portishead's 'Roads' but it's playing on a record player that's slowly melting",
-    "Joy Division's 'Love Will Tear Us Apart' performed by a choir of elderly people who've never heard the song",
-    "David Bowie's 'Space Oddity' listened to while floating face-up in a sensory deprivation tank",
-    "Billie Eilish's 'when the party's over' but every time she whispers, something moves in your peripheral vision",
-    "Thom Yorke's 'Dawn Chorus' played at exactly sunrise while standing in an empty field",
-    "Frank Sinatra's 'Fly Me To The Moon' but it's echoing through the halls of an abandoned space station",
-  ];
-  
-  // Updated emojis to be unusual but fun combinations
-  const emojiSets = [
-    ["🌮", "🦄", "🔮", "🧠", "🌈"],
-    ["🍕", "🪐", "🌵", "🧩", "✨"],
-    ["🤖", "🦋", "🍦", "🎯", "🎨"],
-    ["🦕", "🧿", "🧸", "🔍", "🌊"],
-    ["🐸", "🍄", "🪄", "🎭", "🌙"],
-    ["🦝", "🍩", "📚", "🧶", "🪩"],
-    ["🦜", "🧠", "🍹", "🎪", "🌴"],
-    ["🦢", "🎲", "🧁", "🔭", "🎠"],
-    ["🐙", "🍭", "🧿", "🎡", "🔔"],
-    ["🦉", "🍉", "🧩", "🪅", "🎪"],
-    ["🦊", "🍰", "🎮", "🧵", "🔮"],
-    ["🐢", "🧊", "🎨", "🧪", "🌌"],
-  ];
-  
-  // Create hash from handle for consistent results for the same handle
+  // Create hash from handle for somewhat consistent results for the same handle
   const hashCode = twitterHandle.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   
-  // Deterministic selection based on hash, but add variety based on vibe type
-  const quoteIndex = (hashCode + vibeType.length) % quotes.length;
-  const musicIndex = (hashCode * 2 + vibeType.charCodeAt(0)) % musicRecommendations.length;
-  const emojiIndex = (hashCode * 3 + vibeType.length) % emojiSets.length;
-  const bgIndex = (hashCode * 4 + vibeType.charCodeAt(0)) % backgroundDescriptions.length;
+  // Deterministic selection based on hash
+  const quoteIndex = hashCode % content.quotes.length;
+  const bgIndex = (hashCode * 2) % content.backgrounds.length;
+  const musicIndex = (hashCode * 3) % content.music.length;
+  const emojiIndex = (hashCode * 4) % content.emojiSets.length;
   
-  // Generate colors that match the vibe type but make them more unsettling
-  const generateVibeColor = () => {
-    // Map vibe types to color palettes - slightly more unsettling versions
-    const colorMappings: Record<string, string[]> = {
-      'chaotic': ['#FF0000', '#FF00FF', '#00FFFF', '#FF8800', '#00FF00'],  // Bright neons
-      'chill': ['#87CEEB', '#B0E0E6', '#AFEEEE', '#E0FFFF', '#F0F8FF'].map(c => makeUnsettling(c)),
-      'retro': ['#FF6347', '#FFD700', '#40E0D0', '#FF7F50', '#00CED1'].map(c => makeUnsettling(c)),
-      'cyberpunk': ['#FF00FF', '#00FFFF', '#FF0000', '#0000FF', '#FFFF00'], // Neon
-      'vaporwave': ['#FF6AD5', '#C774E8', '#AD8CFF', '#8795E8', '#94D0FF'].map(c => makeUnsettling(c)),
-      'cottagecore': ['#8FBC8F', '#F0E68C', '#FFB6C1', '#FFDAB9', '#98FB98'].map(c => makeUnsettling(c)),
-      'hyper-digital': ['#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FFFFFF'], // Digital
-      'cosmic': ['#9370DB', '#8A2BE2', '#7B68EE', '#6A5ACD', '#483D8B'].map(c => makeUnsettling(c)),
-      'goth': ['#000000', '#696969', '#800000', '#4B0082', '#2F4F4F'], // Dark
-      'dreamcore': ['#FF69B4', '#00BFFF', '#FF1493', '#1E90FF', '#FFFF54'].map(c => makeUnsettling(c)),
-      'ethereal': ['#E6E6FA', '#D8BFD8', '#DDA0DD', '#DA70D6', '#EE82EE'].map(c => makeUnsettling(c)),
-    };
-    
-    const palette = colorMappings[vibeType] || ['#FF00FF', '#00FFFF', '#FF7700'];
-    return palette[Math.floor(Math.random() * palette.length)];
-  };
+  // Get color palette based on vibe type
+  const colorCount = content.colors.length;
+  const randomColors = [
+    content.colors[hashCode % colorCount],
+    content.colors[(hashCode * 2) % colorCount],
+    content.colors[(hashCode * 3) % colorCount]
+  ];
   
-  // Function to make colors slightly "off" or unsettling
-  function makeUnsettling(hexColor: string): string {
-    // Parse the hex color
-    const r = parseInt(hexColor.slice(1, 3), 16);
-    const g = parseInt(hexColor.slice(3, 5), 16);
-    const b = parseInt(hexColor.slice(5, 7), 16);
-    
-    // Slightly shift one channel to make it feel "off"
-    const shiftAmount = Math.floor(Math.random() * 30) + 10;
-    const channelToShift = Math.floor(Math.random() * 3);
-    
-    let newR = r, newG = g, newB = b;
-    
-    if (channelToShift === 0) newR = Math.min(255, Math.max(0, r + shiftAmount));
-    else if (channelToShift === 1) newG = Math.min(255, Math.max(0, g + shiftAmount));
-    else newB = Math.min(255, Math.max(0, b + shiftAmount));
-    
-    // Convert back to hex
-    return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
-  }
-  
-  const result = {
-    quote: quotes[quoteIndex],
+  return {
+    quote: content.quotes[quoteIndex],
     vibeType,
-    colorPalette: [generateVibeColor(), generateVibeColor(), generateVibeColor()],
-    music: musicRecommendations[musicIndex],
-    emojiSet: emojiSets[emojiIndex],
-    background: backgroundDescriptions[bgIndex]
+    colorPalette: randomColors,
+    music: content.music[musicIndex],
+    emojiSet: content.emojiSets[emojiIndex],
+    background: content.backgrounds[bgIndex]
   };
-  
-  return result;
 } 
