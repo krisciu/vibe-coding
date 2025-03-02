@@ -85,11 +85,25 @@ export default function Home() {
   const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
   const [analyticsCount, setAnalyticsCount] = useState<number>(0);
   const [sortBy, setSortBy] = useState<"recent" | "likes">("recent");
+  const [likedVibes, setLikedVibes] = useState<Set<number>>(new Set());
 
   // Fetch popular vibes on component mount
   useEffect(() => {
     fetchPopularVibes();
     fetchGenerationCount();
+
+    // Load previously liked vibes from localStorage
+    const storedLikedVibes = localStorage.getItem("likedVibes");
+    if (storedLikedVibes) {
+      try {
+        const likedIds = JSON.parse(storedLikedVibes);
+        setLikedVibes(new Set(likedIds));
+      } catch (e) {
+        console.error("Error parsing liked vibes from localStorage:", e);
+        // Reset localStorage if corrupted
+        localStorage.setItem("likedVibes", JSON.stringify([]));
+      }
+    }
   }, [sortBy]);
 
   const fetchGenerationCount = async () => {
@@ -192,8 +206,16 @@ export default function Home() {
   const likeVibe = async (id: number | undefined) => {
     if (!id) return;
 
+    // Check if this vibe has already been liked
+    if (likedVibes.has(id)) {
+      // Optionally show a message to the user
+      console.log("You already liked this vibe!");
+      return;
+    }
+
     try {
       await fetch(`/api/like-vibe/${id}`, { method: "POST" });
+
       // Update the liked vibe in the list
       setPopularVibes((vibes) =>
         vibes.map((vibe) => {
@@ -206,6 +228,14 @@ export default function Home() {
           return vibe;
         })
       );
+
+      // Add this vibe ID to the set of liked vibes
+      const newLikedVibes = new Set(likedVibes);
+      newLikedVibes.add(id);
+      setLikedVibes(newLikedVibes);
+
+      // Save to localStorage
+      localStorage.setItem("likedVibes", JSON.stringify([...newLikedVibes]));
     } catch (err) {
       console.error("Error liking vibe:", err);
     }
@@ -466,10 +496,18 @@ export default function Home() {
                   </p>
                   <div className="flex justify-between items-center">
                     <button
-                      className="text-xs px-2 py-1 bg-white/20 rounded-full hover:bg-white/30 transition-all flex items-center gap-1"
+                      className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
+                        likedVibes.has(entry.id || -1)
+                          ? "bg-pink-200 dark:bg-pink-900 cursor-default"
+                          : "bg-white/20 hover:bg-white/30 transition-all"
+                      }`}
                       onClick={() => likeVibe(entry.id)}
+                      disabled={likedVibes.has(entry.id || -1)}
                     >
-                      <span>❤️</span> {entry.likes || 0}
+                      <span>
+                        {likedVibes.has(entry.id || -1) ? "❤️" : "🤍"}
+                      </span>{" "}
+                      {entry.likes || 0}
                     </button>
                     <span className="text-xs opacity-50">
                       {new Date(entry.created_at || "").toLocaleDateString()}

@@ -141,22 +141,22 @@ function getVibeTypeFromHandle(handle: string): string {
 }
 
 async function generateAdvancedVibe(twitterHandle: string): Promise<MoodMashData> {
-  // Define prompt for the AI - make it more deranged
-  const prompt = `Generate a creative, DERANGED "vibe" for Twitter/X user @${twitterHandle}.
+  // Define prompt for the AI - make it quirky but not too extreme
+  const prompt = `Generate a creative, QUIRKY "vibe" for Twitter/X user @${twitterHandle}.
   
-  Make the quote unsettling, darkly funny, and existentially disturbing - think of a mix between Adult Swim at 3AM, David Lynch, and a fever dream. It should make people do a double-take.
+  Make the quote witty, unexpected, and a bit strange - think of a mix between Adult Swim, surrealist humor, and internet meme culture. It should be memorable but not disturbing.
   
-  The quote should feel like an intrusive thought that's both humorous and slightly uncomfortable - the kind of thing someone might think but never say out loud.
+  The quote should feel like an amusing shower thought or an unexpected observation that makes people smile - weird but not unsettling.
   
   Return a JSON object with the following properties:
-  - quote: A unique, disturbing quote that represents their vibe (unsettling humor, weird existentialism, slightly unhinged energy)
+  - quote: A unique, quirky quote that represents their vibe (offbeat humor, weird observations, memorable lines)
   - vibeType: "${getVibeTypeFromHandle(twitterHandle)}" (do not change this value)
   - colorPalette: Array of 3 hex color codes that match the vibe
-  - music: A bizarre, specific music recommendation that matches the vibe (can be genre, artist, or specific song - the more strange and specific, the better)
-  - emojiSet: Array of 5 emojis that represent the vibe (use unusual combinations that feel off-putting)
-  - background: A text description of a visual background pattern that is dreamlike, unsettling, or liminal space-adjacent
+  - music: A specific music recommendation that matches the vibe (specific artist/song with a quirky listening scenario)
+  - emojiSet: Array of 5 emojis that represent the vibe (use unusual but fun combinations)
+  - background: A text description of a visual background pattern that is dreamlike or unusual but not disturbing
 
-  Make it creative, unsettling, and deeply weird. DO NOT include any explanation, ONLY return the valid JSON.`;
+  Make it creative and weird, but fun. DO NOT include any explanation, ONLY return the valid JSON.`;
 
   try {
     // If no API key is available, return mock data
@@ -168,11 +168,11 @@ async function generateAdvancedVibe(twitterHandle: string): Promise<MoodMashData
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a creative vibe generator that creates unhinged, deranged, surreal digital aesthetics. Think of late-night Adult Swim, dreamcore, David Lynch, and internet horror. You create content that is deliberately weird, unsettling, and makes people uncomfortable in an interesting way." },
+        { role: "system", content: "You are a creative vibe generator that creates quirky, unusual digital aesthetics. Think of Adult Swim bumpers, internet culture, and surrealist humor. You create content that is weird and memorable, but fun rather than disturbing." },
         { role: "user", content: prompt }
       ],
       response_format: { type: "json_object" },
-      temperature: 0.95, // Higher temperature for more creative/weird outputs
+      temperature: 0.9, // High but not extreme temperature for creative outputs
     });
 
     const content = response.choices[0].message.content;
@@ -211,31 +211,47 @@ function getMockVibeData(twitterHandle: string): MoodMashData {
   // Use our deterministic but varied function to set the vibe type
   console.log(`Generated mock vibe using type: ${vibeType} for handle: ${twitterHandle}`);
   
-  // Updated quotes to be more deranged and unsettling
+  // Updated quotes to be quirky but not disturbing
   const quotes = [
-    "Sometimes I wonder if my reflection is happier in its universe than I am in mine",
-    "It's weird how we're all just skeletons piloting meat suits, tricking each other into thinking we're normal",
-    "Every time I use the microwave I apologize to it in my head just in case machines become sentient and remember who was nice to them",
-    "I'm not sure if I'm a person who dreams or a dream that thinks it's a person",
-    "My therapist says I catastrophize but what does she know about the tiny cameras in all the puddles",
-    "I keep all my memories in a shoebox under my bed, I just can't remember which one",
-    "The skin is the only thing keeping all your organs from meeting each other",
-    "Sometimes I lie awake wondering if my furniture moves around when I'm not looking",
-    "I'm not avoiding my problems, I'm just letting them ripen to perfection",
-    "I'm not paranoid, I've just noticed the same bird outside my window for three consecutive years",
-    "Often I think about how we're just meat puppets dancing on a cosmic string in a universe that doesn't care",
-    "Every night I have the same dream where I'm explaining to a table full of ducks why I don't have any bread",
-    "I think my shadow is plotting something against me, it's always one step behind",
-    "The walls aren't just listening, they're taking notes and comparing stories",
-    "Sometimes I make eye contact with myself in the mirror just to make sure it's still me in there",
-    "I keep having this recurring dream where I'm normal and that scares me more than anything",
-    "The void is calling but I've put it on spam because its energy is too clingy",
-    "I check under my bed for monsters then apologize for not having snacks ready for them",
+    "I don't always understand my life choices, but neither does my FBI agent",
+    "If trees could use social media, they'd just post pictures of themselves standing around",
+    "My brain has too many tabs open and I can't find where the music is coming from",
+    "I wish my grass was emo so it would cut itself",
+    "I'm not saying I'm Batman, but no one has ever seen me and Batman in the same room",
+    "Sometimes I talk to myself, then we both laugh at what I said",
+    "My bed is a magical place where I suddenly remember everything I was supposed to do",
+    "I put the 'pro' in procrastination and the 'nap' in inappropriate times to sleep",
+    "People say nothing is impossible, but I do nothing every day",
+    "Life is soup, I am fork",
+    "My room isn't messy, it's an interactive art installation titled 'Who Needs Floor Space Anyway?'",
+    "Every time I check the time it's always a different number",
+    "Sometimes I wonder if clouds look down and think those humans look like ants",
+    "If Plan A doesn't work, don't worry. The alphabet has 25 more letters",
+    "Some people want to watch the world burn. I just want to know if you've tried turning it off and back on again",
+    "My passwords are protected by amnesia",
+    "Life hack: You can't lose your keys if you never leave your house",
+    "My playlist is a mystery novel where every song is a suspect",
   ];
   
-  // Updated music recommendations to be weirder
+  // Updated backgrounds to be less unsettling
+  const backgroundDescriptions = [
+    "A gradient of sunset colors with tiny animated shooting stars",
+    "Retro grid lines that occasionally wiggle like they're dancing to music",
+    "Slow-moving bubbles that shimmer with rainbow colors when they overlap",
+    "A pattern of tiny geometric shapes that slowly rotate in different directions",
+    "Watercolor splotches that gently pulse to an invisible beat",
+    "A desktop wallpaper that looks like it escaped from Windows 98",
+    "Floating digital confetti that never quite lands anywhere",
+    "Pastel clouds that drift by as if in a time-lapse video",
+    "A field of digital flowers that bloom when you look at them too long",
+    "Pixel art waves that ripple across the background",
+    "A star field where occasionally one star winks at you",
+    "A collection of tiny doodles that seem to be playing hide and seek",
+    "Gentle neon outlines that trace invisible objects",
+  ];
+  
+  // Updated music recommendations to be quirky but not too extreme
   const musicRecommendations = [
-    "Aphex Twin's 'Selected Ambient Works Volume II' but only when played at 3AM in an empty parking garage",
     "Beach House's 'Space Song' slowed down 20% and listened to through a broken cassette player",
     "Radiohead's 'Pyramid Song' but each instrument is replaced with the sound of different kitchen appliances",
     "Frank Ocean's 'Nights' played backwards while sitting in an empty bathtub",
@@ -253,37 +269,20 @@ function getMockVibeData(twitterHandle: string): MoodMashData {
     "Frank Sinatra's 'Fly Me To The Moon' but it's echoing through the halls of an abandoned space station",
   ];
   
-  // Updated emojis to be weirder combinations
+  // Updated emojis to be unusual but fun combinations
   const emojiSets = [
-    ["👁️", "🥄", "📞", "🦷", "🧠"],
-    ["🕳️", "🧿", "🥩", "🧊", "🎭"],
-    ["🧸", "🔪", "🥛", "🚪", "🔍"],
-    ["📼", "⏰", "🎪", "🧩", "🩸"],
-    ["🪞", "👥", "🧵", "📡", "🕯️"],
-    ["⚰️", "🎠", "🧃", "🪑", "🌡️"],
-    ["👁️‍🗨️", "🫀", "🎲", "🧪", "🪓"],
-    ["🧿", "🔭", "🧠", "🧶", "📺"],
-    ["🩹", "💉", "📟", "🔌", "🪟"],
-    ["🎬", "🧮", "🎙️", "🖲️", "📱"],
-    ["🔬", "🪶", "🧫", "👣", "🧬"],
-    ["🕰️", "📓", "🔎", "🧯", "🩹"],
-  ];
-  
-  // Updated backgrounds to be more unsettling
-  const backgroundDescriptions = [
-    "An infinite hallway of identical doors that seem to breathe slightly",
-    "A children's birthday party frozen in time, with all colors gradually shifting to unnatural hues",
-    "Static television snow that occasionally forms patterns that look like faces for a split second",
-    "A familiar bedroom where all the furniture is 3% larger than it should be",
-    "An endless staircase that appears to go down but somehow you keep going up",
-    "A corporate office with fluorescent lights that flicker in a pattern that seems intentional",
-    "The backrooms wallpaper but every few seconds it shifts slightly when you're not looking directly at it",
-    "Windows that should show outside but instead show the same room from impossible angles",
-    "A swimming pool at night with lights that create shadows that don't match what's casting them",
-    "A school hallway that's slightly too long with lockers that occasionally make sounds when no one is near",
-    "An old photograph where people in the background seem to be looking directly at the viewer",
-    "The corner of your eye - everything you almost see but don't quite catch",
-    "The space between mirror reflections where something might be watching",
+    ["🌮", "🦄", "🔮", "🧠", "🌈"],
+    ["🍕", "🪐", "🌵", "🧩", "✨"],
+    ["🤖", "🦋", "🍦", "🎯", "🎨"],
+    ["🦕", "🧿", "🧸", "🔍", "🌊"],
+    ["🐸", "🍄", "🪄", "🎭", "🌙"],
+    ["🦝", "🍩", "📚", "🧶", "🪩"],
+    ["🦜", "🧠", "🍹", "🎪", "🌴"],
+    ["🦢", "🎲", "🧁", "🔭", "🎠"],
+    ["🐙", "🍭", "🧿", "🎡", "🔔"],
+    ["🦉", "🍉", "🧩", "🪅", "🎪"],
+    ["🦊", "🍰", "🎮", "🧵", "🔮"],
+    ["🐢", "🧊", "🎨", "🧪", "🌌"],
   ];
   
   // Create hash from handle for consistent results for the same handle
